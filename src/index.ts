@@ -288,10 +288,10 @@ export const oxlintPlugin = (options: Options = {}) => ({
   setup(api: RsbuildPluginAPI) {
     let timeoutId: NodeJS.Timeout | undefined;
     let pmPromise: ReturnType<typeof detect> | undefined;
-    let logger: Logger | undefined;
+    const logger: Logger = api.logger;
     let send: RsbuildDevServer['sockWrite'] | undefined;
     let lastCompilation: Rspack.Compilation | null = null;
-    let lintResults: {
+    const lintResults: {
       error: RsLintError[];
       warning: RsLintError[];
     } = {
@@ -410,8 +410,6 @@ export const oxlintPlugin = (options: Options = {}) => ({
       };
     };
 
-    logger = api.logger;
-
     api.modifyRspackConfig((config) => {
       config.plugins = config.plugins ?? [];
 
@@ -467,7 +465,7 @@ export const oxlintPlugin = (options: Options = {}) => ({
     api.onAfterDevCompile(() => {
       debouncedRun();
     });
-    api.onAfterStartDevServer(async (server) => {
+    api.onAfterStartDevServer(async () => {
       const { lintOnStart = true } = options;
       if (lintOnStart) {
         await runOxlint();
