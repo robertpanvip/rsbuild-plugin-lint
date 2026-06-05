@@ -1,6 +1,6 @@
-# rsbuild-plugin-example
+# rsbuild-plugin-oxlint
 
-Example plugin for Rsbuild.
+oxlint plugin for Rsbuild.
 
 <p>
   <a href="https://npmjs.com/package/rsbuild-plugin-example">
@@ -15,34 +15,18 @@ Example plugin for Rsbuild.
 Install:
 
 ```bash
-npm add rsbuild-plugin-example -D
+npm add rsbuild-plugin-oxlint -D
 ```
 
 Add plugin to your `rsbuild.config.ts`:
 
 ```ts
 // rsbuild.config.ts
-import { pluginExample } from 'rsbuild-plugin-example';
+import { oxlintPlugin } from 'rsbuild-plugin-oxlint';
 
 export default {
-  plugins: [pluginExample()],
+  plugins: [oxlintPlugin()],
 };
-```
-
-## Options
-
-### foo
-
-Some description.
-
-- Type: `string`
-- Default: `undefined`
-- Example:
-
-```js
-pluginExample({
-  foo: 'bar',
-});
 ```
 
 ## License
