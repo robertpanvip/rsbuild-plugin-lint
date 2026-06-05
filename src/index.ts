@@ -212,7 +212,7 @@ const runChild = ({
             reject(new Error('Oxlint found lint errors.'));
           } else {
             //logger?.warn("Oxlint found lint errors.");
-            //resolve({ status: "lint-errors", errors: [] });
+            resolve({ status: "lint-errors", errors: [] });
           }
         }
       } else if (buffered) {
@@ -241,7 +241,6 @@ const runOxlintOnce = async (
   if (!pm) {
     throw new Error('Could not detect package manager');
   }
-  console.log(pm);
   const tryRun = async (useExecuteLocal: boolean): Promise<RunChildResult> => {
     const resolved = oxlintPath
       ? { args, command: resolveAbsolutePath(oxlintPath) }
@@ -284,6 +283,7 @@ interface RsLintError extends Error {
     end: { line: number; column?: number };
   };
 }
+
 export const oxlintPlugin = (options: Options = {}) => ({
   setup(api: RsbuildPluginAPI) {
     let timeoutId: NodeJS.Timeout | undefined;
@@ -418,9 +418,8 @@ export const oxlintPlugin = (options: Options = {}) => ({
       config.plugins.push({
         apply(compiler: Rspack.Compiler) {
           compiler.hooks.thisCompilation.tap('oxlint-plugin', (compilation) => {
-            console.log('compilation----');
             try {
-              /*  compilation.errors.push(
+                compilation.errors.push(
                 ...lintResults.error.map((item) => {
                   return formateCodeFrame(item);
                 }),
@@ -429,7 +428,7 @@ export const oxlintPlugin = (options: Options = {}) => ({
                 ...lintResults.warning.map((w) => {
                   return formateCodeFrame(w);
                 }),
-              );*/
+              );
               lastCompilation = compilation;
             } catch (e) {
               console.error(e);
@@ -449,7 +448,6 @@ export const oxlintPlugin = (options: Options = {}) => ({
           send = devServer.sockWrite;
           devServer.httpServer?.on('upgrade', (req) => {
             if (req.url?.includes(config.dev?.client?.path)) {
-              console.log('hmr reconnect');
               setTimeout(()=>{
                 sendErrorToOverlay(lintResults.error);
               },500)
@@ -467,7 +465,6 @@ export const oxlintPlugin = (options: Options = {}) => ({
       }
     });
     api.onAfterDevCompile(() => {
-      console.log('zzzz');
       debouncedRun();
     });
     api.onAfterStartDevServer(async (server) => {
