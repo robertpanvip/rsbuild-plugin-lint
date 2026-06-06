@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import nodePath from 'node:path';
 import type { RsbuildPluginAPI } from '@rsbuild/core';
-import lintPlugin, { LintError } from './core.ts';
+import lintPlugin from './core.ts';
 
 export interface Options {
   path?: string;
@@ -29,6 +29,32 @@ export interface Options {
   lintOnHotUpdate?: boolean;
   devServer?: boolean;
 }
+
+type SpanItem = {
+  offset: number;
+  length: number;
+  line: number;
+  column: number;
+};
+
+type Label = {
+  label: string;
+  span: SpanItem;
+};
+
+type LintError = {
+  name: string;
+  message: string;
+  code: string;
+  severity: string;
+  causes: unknown[];
+  url: string;
+  help: string;
+  filename: string;
+  labels: Label[];
+  related: unknown[];
+};
+
 
 const parseJsonOutput = (output: string): LintError[] => {
   try {

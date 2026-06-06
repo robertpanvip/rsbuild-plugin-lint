@@ -19,30 +19,7 @@ const DEBOUNCE_MS = 500;
 const resolveAbsolutePath = (p: string): string =>
   nodePath.isAbsolute(p) ? p : nodePath.join(process.cwd(), p);
 
-export type SpanItem = {
-  offset: number;
-  length: number;
-  line: number;
-  column: number;
-};
 
-export type Label = {
-  label: string;
-  span: SpanItem;
-};
-
-export type LintError = {
-  name: string;
-  message: string;
-  code: string;
-  severity: string;
-  causes: unknown[];
-  url: string;
-  help: string;
-  filename: string;
-  labels: Label[];
-  related: unknown[];
-};
 
 interface RunChildParams {
   cmd: string;
