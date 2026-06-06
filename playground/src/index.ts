@@ -1,4 +1,5 @@
 import './index.css';
+
 let a = 123;
 
 document.querySelector('#root').innerHTML = `
@@ -7,3 +8,4 @@ document.querySelector('#root').innerHTML = `
   <p>Start building amazing things with Rsbuild.</p>
 </div>
 `;
+
