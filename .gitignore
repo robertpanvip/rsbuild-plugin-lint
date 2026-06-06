@@ -1,15 +1,9 @@
-# Local
-.DS_Store
-*.local
-*.log*
-
-# Dist
-node_modules
-dist/
-test-results
-
-# IDE
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
-.idea
+/packages/rsbuild/node_modules/
+/packages/rsbuild/dist/
+/packages/vite/node_modules/
+/packages/vite/dist/
+/packages/core/node_modules/
+/packages/core/dist/
+/packages/vite/playground/node_modules/
+/node_modules/
+.idea/

@@ -1,0 +1,56 @@
+{
+  "name": "rsbuild-plugin-lint",
+  "version": "0.1.0",
+  "repository": "https://github.com/robertpanvip/rsbuild-plugin-lint.git",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rslib",
+    "dev": "rslib -w",
+    "lint": "rslint && prettier -c .",
+    "lint:write": "rslint --fix && prettier -w .",
+    "test": "playwright test",
+    "bump": "pnpx bumpp"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@rsbuild/core": "^2.0.7",
+    "@rslib/core": "^0.21.5",
+    "@rslint/core": "^0.5.3",
+    "@types/babel__code-frame": "^7.27.0",
+    "@types/cross-spawn": "^6.0.6",
+    "@types/node": "^24.12.4",
+    "playwright": "^1.60.0",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "@rsbuild/core": "^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@rsbuild/core": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "cross-spawn": "^7.0.6",
+    "oxlint": "^1.68.0",
+    "package-manager-detector": "^1.6.0",
+    "rslog": "^2.1.2",
+    "@babel/code-frame": "^7.29.7"
+  }
+}
