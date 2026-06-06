@@ -1,0 +1,11 @@
+{
+  "name": "playground",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "npm exec rsbuild",
+    "lint": "npx rslint --type-check .",
+    "build": "npm exec rsbuild build"
+  }
+}

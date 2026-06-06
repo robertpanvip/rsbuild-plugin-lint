@@ -1,0 +1,50 @@
+{
+  "name": "rsbuild-plugin-biome",
+  "version": "0.1.1",
+  "repository": "https://github.com/robertpanvip/rsbuild-plugin-lint.git",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rslib",
+    "dev": "rslib -w",
+    "lint": "rslint && prettier -c .",
+    "lint:write": "rslint --fix && prettier -w .",
+    "test": "playwright test",
+    "bump": "pnpx bumpp"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@rsbuild/core": "^2.0.7",
+    "@rslib/core": "^0.21.5",
+    "@rslint/core": "^0.5.3",
+    "@types/node": "^24.12.4",
+    "playwright": "^1.60.0",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "@rsbuild/core": "^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@rsbuild/core": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@biomejs/biome": "latest"
+  }
+}
