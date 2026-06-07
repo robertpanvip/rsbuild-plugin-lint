@@ -113,6 +113,7 @@ export const lintPlugin = (options: LintOptions) => ({
         logger.error(`${executeName} Failed to clear overlay: ${e}`);
       }
     };
+
     let runId = 0;
     const runLint = async () => {
       try {
