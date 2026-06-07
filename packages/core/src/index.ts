@@ -124,7 +124,7 @@ export const lintPlugin = (options: LintOptions) => ({
         if (currentRun !== runId) {
           return;
         }
-        
+
         if (result.status === 'lint-errors') {
           lintResults.error = result.errors;
           const data = sendErrorToOverlay(lintResults.error);
