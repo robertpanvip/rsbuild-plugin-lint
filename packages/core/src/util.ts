@@ -37,9 +37,11 @@ export const runLintOnce = async (
   } = options;
   const cwd = resolveAbsolutePath(path);
   const pm = await pmPromise;
+
   if (!pm) {
     throw new Error('Could not detect package manager');
   }
+
   const tryRun = async (useExecuteLocal: boolean): Promise<RunChildResult> => {
     const resolved = lintPath
       ? { args, command: resolveAbsolutePath(lintPath) }
@@ -56,6 +58,7 @@ export const runLintOnce = async (
         `${executeName} Could not resolve ${executeName} command for ${pm.agent}`,
       );
     }
+
     const result = await runChild({
       args: resolved.args,
       buffered: useExecuteLocal && !lintPath,
@@ -66,6 +69,7 @@ export const runLintOnce = async (
       formatter,
       executeName,
     });
+
     if (result.status === 'fallback') {
       return tryRun(false);
     }
