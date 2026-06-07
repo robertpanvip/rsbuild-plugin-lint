@@ -132,6 +132,8 @@ export const lintPlugin = (options: LintOptions) => ({
           }
         } else {
           clearOverlay();
+          lintResults.error = [];
+          lintResults.warning = [];
         }
       } catch (error) {
         logger.error(`${executeName} Error executing ${executeName}: ${error}`);
@@ -211,13 +213,12 @@ export const lintPlugin = (options: LintOptions) => ({
       debouncedRun();
     });
 
-    api.onAfterStartDevServer(async () => {
+    api.onAfterStartDevServer(() => {
       const { lintOnStart = true } = options;
       if (lintOnStart) {
-        await runLint();
+        runLint().then();
       }
     });
-
   },
   name: 'linter-plugin',
 });
