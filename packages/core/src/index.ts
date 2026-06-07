@@ -21,6 +21,7 @@ const DEBOUNCE_MS = 500;
 export const lintPlugin = (options: LintOptions) => ({
   setup(api: RsbuildPluginAPI) {
     const executeName = options.executeName;
+    const restartCompile = options.restartCompile ?? true;
     let timeoutId: NodeJS.Timeout | undefined;
     let pmPromise: ReturnType<typeof detect> | undefined;
     const logger: Logger = api.logger;
@@ -211,7 +212,9 @@ export const lintPlugin = (options: LintOptions) => ({
     });
 
     api.onAfterDevCompile(() => {
-      debouncedRun();
+      if (restartCompile) {
+        debouncedRun();
+      }
     });
 
     api.onAfterStartDevServer(() => {

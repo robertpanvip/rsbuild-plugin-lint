@@ -6,7 +6,6 @@ export interface RunChildParams {
   cwd: string;
   logger: Logger;
   shouldFail: boolean;
-  buffered: boolean;
   formatter: (data: string) => RsLintError[];
   executeName: string;
 }
@@ -28,8 +27,9 @@ export type RunChildResult =
   | { status: 'lint-errors'; errors: RsLintError[] }
   | { status: 'fallback' };
 
-export type LintOptions = {
+export type LintOptions<> = {
   lintOnStart?: boolean;
+  restartCompile?: boolean;
   path?: string;
   shouldFail?: boolean;
   lintPath?: string;

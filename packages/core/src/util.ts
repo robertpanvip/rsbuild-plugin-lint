@@ -61,7 +61,6 @@ export const runLintOnce = async (
 
     const result = await runChild({
       args: resolved.args,
-      buffered: useExecuteLocal && !lintPath,
       cmd: resolved.command,
       cwd,
       logger,
@@ -84,12 +83,11 @@ const runChild = ({
   cwd,
   logger,
   shouldFail,
-  buffered,
   formatter,
   executeName,
 }: RunChildParams): Promise<RunChildResult> =>
   new Promise((resolve, reject) => {
-    const bufferedOutput: string[] = [];
+    let output = '';
     const child = spawn(cmd, args, {
       cwd,
       env: { ...env, FORCE_COLOR: '1' },
@@ -97,59 +95,27 @@ const runChild = ({
       stdio: 'pipe',
     });
 
-    const emit = (data: Buffer, log: (s: string) => void) => {
-      const trimmed = data.toString().trimEnd();
-      if (!trimmed) {
-        return;
-      }
-      if (buffered) {
-        bufferedOutput.push(trimmed);
-      } else {
-        log(trimmed);
-      }
+    const emit = (data: Buffer) => {
+      output += data.toString();
     };
 
-    child.stdout?.on('data', (d) => emit(d, (s) => logger.info(s)));
-    child.stderr?.on('data', (d) => emit(d, (s) => logger.error(s)));
+    child.stdout?.on('data', (d) => emit(d));
+    child.stderr?.on('data', (d) => emit(d));
     child.on('error', (error) => {
-      if (buffered) {
-        resolve({ status: 'fallback' });
-        return;
-      }
+      resolve({ status: 'fallback' });
       logger.error(`${executeName} Error: ${error.message}`);
       reject(error);
     });
 
     child.on('exit', (code) => {
-      const output = bufferedOutput.join('\n');
-      if (code === 0) {
-        if (!buffered) {
-          logger.info(`${executeName} successfully finished.`);
-        }
-        const errors = formatter(output);
-        //resolve({ status: "ok" });
+      if (code !== 0 && shouldFail) {
+        reject(new Error(`${executeName} found lint errors.`));
+        return;
+      }
+      const errors = formatter(output);
+      if (errors.length) {
         resolve({ status: 'lint-errors', errors });
-      } else if (code === 1) {
-        const errors = formatter(output);
-        if (errors.length > 0) {
-          resolve({ status: 'lint-errors', errors });
-        } else {
-          if (buffered) {
-            const errors = bufferedOutput.flatMap((line) => {
-              return formatter(line);
-            });
-            resolve({ status: 'lint-errors', errors });
-          }
-          if (shouldFail) {
-            reject(new Error(`${executeName} found lint errors.`));
-          } else {
-            resolve({ status: 'lint-errors', errors: [] });
-          }
-        }
-      } else if (buffered) {
-        resolve({ status: 'fallback' });
       } else {
-        logger.error(`${executeName} exited with unexpected code: ${code}`);
         resolve({ status: 'ok' });
       }
     });
@@ -194,6 +160,6 @@ export const formateCodeFrame = (prefix: string, item: RsLintError) => {
   }
   return {
     ...item,
-    message: ` ${prefix} [${color.green(item.code)}] ${color.cyan(item.message)} ${color.cyan(item.help)}\n${frame}\n`,
+    message: ` ${prefix} ${item.code ? `[${color.green(item.code)}]` : ``} ${color.cyan(item.message)} ${color.cyan(item.help)}\n${frame}\n`,
   };
 };
