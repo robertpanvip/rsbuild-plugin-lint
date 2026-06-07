@@ -57,6 +57,7 @@ export const lintPlugin = (options: LintOptions) => ({
           logger.warn('sockWrite not available, cannot send errors to overlay');
           return;
         }
+
         const toSends = errors
           .map((e) => formateCodeFrame(prefix, e))
           .map((item) => ({
