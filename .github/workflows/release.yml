@@ -12,6 +12,8 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -72,7 +74,9 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add packages/*/package.json
           git commit -m "chore: bump package versions" || echo "No changes to commit"
-          git push
+          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:${GITHUB_REF_NAME}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Skip - No Changes
         if: steps.changed.outputs.changed_packages == ''
