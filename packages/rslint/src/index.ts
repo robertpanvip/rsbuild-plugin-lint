@@ -127,6 +127,7 @@ export const linterPlugin = (options: Options = {}) => ({
       lintPath: options.rslintPath,
       executeName: 'rslint',
       formatter,
+      lintOnStart: options.lintOnStart,
     }).setup(api);
   },
   name: 'rslint-plugin',

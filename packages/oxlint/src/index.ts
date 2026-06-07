@@ -28,6 +28,9 @@ export interface Options {
   lintOnStart?: boolean;
   lintOnHotUpdate?: boolean;
   devServer?: boolean;
+  typeAware?: boolean;
+  typeCheck?: boolean;
+  tsconfig?: string;
 }
 
 type SpanItem = {
@@ -89,7 +92,16 @@ const formatter = (output: string) => {
 const resolveAbsolutePath = (p: string): string =>
   nodePath.isAbsolute(p) ? p : nodePath.join(process.cwd(), p);
 
-const buildArgs = (options: Options): string[] => {
+const checkTsPluginInstalled = (logger: { warn: (msg: string) => void }): boolean => {
+  try {
+    require.resolve('oxlint-tsgolint');
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const buildArgs = (options: Options, logger?: { warn: (msg: string) => void }): string[] => {
   const {
     ignorePattern,
     configFile = 'oxlintrc.json',
@@ -101,7 +113,24 @@ const buildArgs = (options: Options): string[] => {
     quiet = false,
     fix = false,
     failOnWarning = false,
+    typeAware = false,
+    tsconfig = '',
+    typeCheck = false,
   } = options;
+  
+  if (
+    (typeAware || tsconfig || typeCheck) &&
+    logger &&
+    !checkTsPluginInstalled(logger)
+  ) {
+    logger.warn(
+      'oxlint-tsgolint is not installed. Type-aware linting requires oxlint-tsgolint.\n' +
+        'Please install it with: npm install oxlint-tsgolint --save-dev\n' +
+        'The --type-aware and --tsconfig options will be ignored.',
+    );
+    return buildArgs({ ...options, typeAware: false, tsconfig: '' }, logger);
+  }
+  
   const args: string[] = [];
   if (quiet) {
     args.push('--quiet');
@@ -114,6 +143,15 @@ const buildArgs = (options: Options): string[] => {
   }
   if (failOnWarning) {
     args.push('--deny-warnings');
+  }
+  if (typeAware) {
+    args.push('--type-aware');
+  }
+  if (typeCheck) {
+    args.push('--type-check');
+  }
+  if (tsconfig) {
+    args.push('--tsconfig', resolveAbsolutePath(tsconfig));
   }
   const patterns = Array.isArray(ignorePattern)
     ? ignorePattern
@@ -144,13 +182,15 @@ const buildArgs = (options: Options): string[] => {
 
 export const linterPlugin = (options: Options = {}) => ({
   setup(api: RsbuildPluginAPI) {
+    const args = buildArgs(options, api.logger);
     lintPlugin({
       path: options.path,
       shouldFail: options.failOnError || options.failOnWarning,
-      args: [...buildArgs(options), '--format', 'json'],
+      args: [...args, '--format', 'json'],
       lintPath: options.oxlintPath,
       executeName: 'oxlint',
       formatter,
+      lintOnStart: options.lintOnStart,
     }).setup(api);
   },
   name: 'oxlint-plugin',

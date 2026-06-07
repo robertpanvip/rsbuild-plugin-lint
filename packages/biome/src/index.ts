@@ -169,6 +169,7 @@ export const linterPlugin = (options: Options = {}) => ({
       lintPath: options.linterPath,
       executeName: 'biome',
       formatter,
+      lintOnStart: options.lintOnStart,
     }).setup(api);
   },
   name: 'biome-plugin',
