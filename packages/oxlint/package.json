@@ -45,7 +45,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
-    "rsbuild-plugin-lint": "latest",
+    "rsbuild-plugin-lint": "file:../core",
     "oxlint": "^1.68.0"
   }
 }

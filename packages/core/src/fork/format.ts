@@ -28,7 +28,11 @@ export const removeLoaderChainDelimiter = (
 };
 
 
-const formatFileName = (fileName: string, stats: StatsError, root: string) => {
+export const formatFileName = (
+  fileName: string,
+  stats: StatsError,
+  root: string,
+) => {
   // File name may be empty when the error is not related to a file.
   // For example, when an invalid entry is provided.
   if (!fileName) {
