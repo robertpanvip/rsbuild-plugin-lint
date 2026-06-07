@@ -61,17 +61,19 @@ jobs:
             echo "Publishing package: $pkg"
             cd packages/$pkg
             pkg_name=$(node -p "require('./package.json').name")
-            npm_latest=$(npm view "$pkg_name" version 2>/dev/null || echo "")
-            if [ -n "$npm_latest" ]; then
-              # Set to npm latest, then bump patch — guarantees higher than what's on npm
-              npm version --no-git-tag-version "$npm_latest"
-              npm version patch --no-git-tag-version
-            else
-              # Package not on npm yet, just bump local patch
-              npm version patch --no-git-tag-version
-            fi
-            new_version=$(node -p "require('./package.json').version")
-            echo "Publishing $pkg_name@$new_version"
+            local_version=$(node -p "require('./package.json').version")
+            npm_latest=$(npm view "$pkg_name" version 2>/dev/null || echo "0.0.0")
+            # Compute target: max(local, npm) + 1 patch — guaranteed higher than both
+            target=$(node -e "
+              const lv = '$local_version'.split('.').map(Number);
+              const nv = '$npm_latest'.split('.').map(Number);
+              const major = Math.max(lv[0], nv[0]);
+              const minor = Math.max(lv[1], nv[1]);
+              const patch = Math.max(lv[2], nv[2]) + 1;
+              console.log(major + '.' + minor + '.' + patch);
+            ")
+            echo "$pkg_name: local=$local_version, npm=$npm_latest, target=$target"
+            npm version --no-git-tag-version "$target"
             npm publish --access public --registry https://registry.npmjs.org/
             cd ../..
           done
