@@ -1,10 +1,14 @@
 {
   "name": "rsbuild-plugin-lint",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "author": "pan",
   "license": "MIT",
   "description": "Core plugin for Rsbuild lint plugins",
-  "keywords": ["rsbuild", "plugin", "lint"],
+  "keywords": [
+    "rsbuild",
+    "plugin",
+    "lint"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/robertpanvip/rsbuild-plugin-lint.git",
