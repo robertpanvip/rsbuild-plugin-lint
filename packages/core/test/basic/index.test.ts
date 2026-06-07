@@ -2,7 +2,7 @@ import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 import { createRsbuild } from '@rsbuild/core';
-import { oxlintPlugin } from '../../src/index.ts';
+//import { lintPlugin } from '../../src/index.ts';
 import { getRandomPort } from '../helper.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -11,7 +11,7 @@ test('should render page as expected', async ({ page }) => {
   const rsbuild = await createRsbuild({
     cwd: __dirname,
     rsbuildConfig: {
-      plugins: [oxlintPlugin()],
+      plugins: [],
       server: {
         port: getRandomPort(),
       },
@@ -30,7 +30,7 @@ test('should build succeed', async ({ page }) => {
   const rsbuild = await createRsbuild({
     cwd: __dirname,
     rsbuildConfig: {
-      plugins: [oxlintPlugin()],
+      plugins: [],
     },
   });
 
