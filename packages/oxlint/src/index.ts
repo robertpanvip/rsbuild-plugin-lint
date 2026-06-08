@@ -195,4 +195,5 @@ export const linterPlugin = (options: Options = {}) => ({
   },
   name: 'oxlint-plugin',
 });
+
 export default linterPlugin;
