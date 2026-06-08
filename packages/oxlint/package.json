@@ -1,6 +1,6 @@
 {
   "name": "rsbuild-plugin-oxlint",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "author": "pan",
   "license": "MIT",
   "description": "Oxlint plugin for Rsbuild",
