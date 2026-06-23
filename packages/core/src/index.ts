@@ -51,7 +51,6 @@ export const lintPlugin = (options: LintOptions) => ({
     };
 
     const sendErrorToOverlay = (errors: RsLintError[]) => {
-      if (errors.length === 0) return;
       try {
         if (!send || typeof send !== 'function') {
           logger.warn('sockWrite not available, cannot send errors to overlay');
@@ -107,15 +106,6 @@ export const lintPlugin = (options: LintOptions) => ({
       }
     };
 
-    const clearOverlay = () => {
-      try {
-        if (!send || typeof send !== 'function') return;
-        send('errors', { html: '', text: [] });
-      } catch (e) {
-        logger.error(`${executeName} Failed to clear overlay: ${e}`);
-      }
-    };
-
     let runId = 0;
     const runLint = async () => {
       try {
@@ -134,7 +124,10 @@ export const lintPlugin = (options: LintOptions) => ({
             sendErrorToLogger(data.issues, data.text);
           }
         } else {
-          clearOverlay();
+          const data = sendErrorToOverlay([]);
+          if (data) {
+            sendErrorToLogger(data.issues, data.text);
+          }
           lintResults.error = [];
           lintResults.warning = [];
         }
