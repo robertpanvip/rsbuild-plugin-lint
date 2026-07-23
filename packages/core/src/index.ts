@@ -1,19 +1,15 @@
-import type {
-  Logger,
-  RsbuildPluginAPI,
-  Rspack,
-} from '@rsbuild/core';
+import type { Logger, RsbuildPluginAPI, Rspack } from '@rsbuild/core';
 import { detect } from 'package-manager-detector/detect';
 import { color } from 'rslog';
-import type { LintOptions, RsLintError } from './interface.ts';
-import { runLintOnce, formateCodeFrame } from './util.ts';
+import { FullTap, LintOptions, RsLintError } from './interface.ts';
+import { runLintOnce, formateCodeFrame, isDevServerTap } from './util.ts';
 
 /**
  * 把 lint 错误包装成 rspack Error,这样 Rsbuild 自带的 overlay 格式化器
  * 能直接识别(stats.errors 里只要是 Error 实例即可)。
  * 对标 ts-checker-rspack-plugin 的 IssueRspackError。
  */
-class LintRspackError extends Error {
+class IssueError extends Error {
   /** 隐藏 JS 调用栈 —— lint 错误没有运行时栈 */
   hideStack = true;
   /** 触发错误的源文件,带 :line:col,overlay 点击可跳转 */
@@ -33,10 +29,17 @@ class LintRspackError extends Error {
       this.file += `:${line}${column ? `:${column}` : ''}`;
     }
     Error.captureStackTrace?.(this, this.constructor);
+
+    // Rsbuild 的 dev server 通过 error.stack?.includes('ts-checker-rspack-plugin')
+    // 来识别异步检查(类型检查/lint)的错误并发送到 overlay(见 @rsbuild/core 756.js:6246)。
+    // 伪造这个标识符,让 lint 错误也能通过 isTsError 检查,完全复用 ts-checker 的 overlay 通道。
+    if (this.stack && !this.stack.includes('ts-checker-rspack-plugin')) {
+      this.stack += '\n    at ts-checker-rspack-plugin';
+    }
   }
 }
 
-export const lintPlugin = (options: LintOptions) => ({
+export const linterPlugin = (options: LintOptions) => ({
   name: 'linter-plugin',
   setup(api: RsbuildPluginAPI) {
     const executeName = options.executeName;
@@ -70,12 +73,7 @@ export const lintPlugin = (options: LintOptions) => ({
         .catch(() => [])
         .then(async () => {
           if (signal.aborted) return [];
-          const result = await runLintOnce(
-            options,
-            logger,
-            getPm(),
-            signal,
-          );
+          const result = await runLintOnce(options, logger, getPm(), signal);
           return result.status === 'lint-errors' ? result.errors : [];
         })
         .catch((e) => {
@@ -95,19 +93,19 @@ export const lintPlugin = (options: LintOptions) => ({
       config.plugins = config.plugins ?? [];
       config.plugins.push({
         apply(compiler: Rspack.Compiler) {
-          // 保存 dev server 的 done tap(对应 interceptDoneToGetDevServerTap)
-          // 生产模式没有 dev server 的 tap,devServerDoneTap 保持 null,无副作用
-          let devServerDoneTap: any = null;
+          let devServerDoneTap: FullTap | null = null;
+
+          // 捕获在 intercept 之前已注册的 tap
+          for (const tap of compiler.hooks.done.taps) {
+            if (isDevServerTap(tap)) {
+              devServerDoneTap = tap;
+            }
+          }
+
+          // 捕获之后注册的 tap
           compiler.hooks.done.intercept({
             register: (tap) => {
-              if (
-                [
-                  'webpack-dev-server',
-                  'rsbuild-dev-server',
-                  'rspack-dev-server',
-                ].includes(tap.name) &&
-                tap.type === 'sync'
-              ) {
+              if (isDevServerTap(tap)) {
                 devServerDoneTap = tap;
               }
               return tap;
@@ -127,7 +125,11 @@ export const lintPlugin = (options: LintOptions) => ({
           });
 
           // 开发模式:await lint,注入 errors,重触发 dev server
-          // (对应 tapDoneToAsyncGetIssues)
+          // (完全对标 ts-checker-rspack-plugin 的 tapDoneToAsyncGetIssues)
+          // 用 tap + async:tapable 不等待返回的 promise,不阻塞 done 钩子链。
+          // lint 完成后在微任务中注入 errors(LintRspackError 的 stack 含
+          // 'ts-checker-rspack-plugin' 标识符),再重放 devServerDoneTap.fn(stats)
+          // 让 Rsbuild 通过 isTsError 通道把错误推送到 overlay。
           compiler.hooks.done.tap(
             `${executeName}-plugin`,
             async (stats: Rspack.Stats) => {
@@ -160,7 +162,7 @@ export const lintPlugin = (options: LintOptions) => ({
               // 上报到 dev-server(overlay),如果有错误且 dev server 在监听
               if (issues.length && devServerDoneTap) {
                 issues.forEach((issue) => {
-                  const error = new LintRspackError(prefix, issue);
+                  const error = new IssueError(prefix, issue);
                   if (issue.severity === 'warning') {
                     stats.compilation.warnings.push(error);
                   } else {
@@ -178,4 +180,4 @@ export const lintPlugin = (options: LintOptions) => ({
   },
 });
 
-export default lintPlugin;
+export default linterPlugin;

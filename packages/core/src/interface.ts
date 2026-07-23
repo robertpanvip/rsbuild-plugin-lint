@@ -36,5 +36,18 @@ export type LintOptions = {
   args: string[];
   formatter: (data: string) => RsLintError[];
 };
+type TapOptions = {
+  before?: string;
+  stage?: number;
+};
+
+type Tap = TapOptions & {
+  name: string;
+};
+
+export type FullTap = Tap & {
+  type: 'sync' | 'async' | 'promise';
+  fn: Function;
+};
 
 export type Issue = Rspack.StatsError & { loc: string };

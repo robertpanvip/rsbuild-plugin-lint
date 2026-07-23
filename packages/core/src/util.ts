@@ -7,6 +7,7 @@ import {
   LintOptions,
   RunChildParams,
   RsLintError,
+  FullTap,
 } from './interface.ts';
 import { resolveCommand } from 'package-manager-detector';
 import path from 'node:path';
@@ -127,8 +128,6 @@ const runChild = ({
     });
   });
 
-
-
 export const formateCodeFrame = (prefix: string, item: RsLintError) => {
   const source =
     item.file &&
@@ -148,3 +147,13 @@ export const formateCodeFrame = (prefix: string, item: RsLintError) => {
     message: ` ${prefix} ${item.code ? `[${color.green(item.code)}]` : ``} ${color.cyan(item.message)} ${color.cyan(item.help)}\n${frame}\n`,
   };
 };
+// 保存 dev server 的 done tap(对应 interceptDoneToGetDevServerTap)
+// 生产模式没有 dev server 的 tap,devServerDoneTap 保持 null,无副作用
+const DEV_SERVER_NAMES = [
+  'webpack-dev-server',
+  'rsbuild-dev-server',
+  'rspack-dev-server',
+];
+
+export const isDevServerTap = (tap: FullTap) =>
+  DEV_SERVER_NAMES.includes(tap.name) && tap.type === 'sync';
