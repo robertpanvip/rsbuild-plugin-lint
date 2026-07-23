@@ -1,223 +1,143 @@
 import type {
   Logger,
-  OverlayOptions,
-  RsbuildDevServer,
   RsbuildPluginAPI,
   Rspack,
 } from '@rsbuild/core';
 import { detect } from 'package-manager-detector/detect';
 import { color } from 'rslog';
-import { getServerMessageErrors } from './message.js';
-import type { LintOptions, RsLintError, Issue } from './interface.ts';
-import {
-  formateCodeFrame,
-  formateIssueLoc,
-  formatLoggerErrors,
-  runLintOnce,
-} from './util.ts';
+import type { LintOptions, RsLintError } from './interface.ts';
+import { runLintOnce, formateCodeFrame } from './util.ts';
 
-const DEBOUNCE_MS = 500;
+/**
+ * 把 lint 错误包装成 rspack Error,这样 Rsbuild 自带的 overlay 格式化器
+ * 能直接识别(stats.errors 里只要是 Error 实例即可)。
+ * 对标 ts-checker-rspack-plugin 的 IssueRspackError。
+ */
+class LintRspackError extends Error {
+  /** 隐藏 JS 调用栈 —— lint 错误没有运行时栈 */
+  hideStack = true;
+  /** 触发错误的源文件,带 :line:col,overlay 点击可跳转 */
+  file: string;
+  /** 原始 lint 错误对象 */
+  issue: RsLintError;
+
+  constructor(prefix: string, issue: RsLintError) {
+    const framed = formateCodeFrame(prefix, issue);
+    super(framed.message);
+    this.name = issue.code || 'LintError';
+    this.issue = { ...issue, message: framed.message };
+
+    this.file = issue.file;
+    if (issue.loc?.start) {
+      const { line, column } = issue.loc.start;
+      this.file += `:${line}${column ? `:${column}` : ''}`;
+    }
+    Error.captureStackTrace?.(this, this.constructor);
+  }
+}
 
 export const lintPlugin = (options: LintOptions) => ({
   setup(api: RsbuildPluginAPI) {
     const executeName = options.executeName;
     const restartCompile = options.restartCompile ?? true;
-    let timeoutId: NodeJS.Timeout | undefined;
-    let pmPromise: ReturnType<typeof detect> | undefined;
     const logger: Logger = api.logger;
-    let send: RsbuildDevServer['sockWrite'] | undefined;
-    let lastCompilation: Rspack.Compilation | null = null;
     const prefix = `${color.yellow('[')}${color.yellow(executeName)}${color.yellow(']')}`;
 
-    const lintResults: {
-      error: RsLintError[];
-      warning: RsLintError[];
-    } = {
-      error: [],
-      warning: [],
-    };
-
-    let overlay: boolean | OverlayOptions = true;
-
+    // —— 状态(对标 ts-checker 的 plugin state) ——
+    let lintPromise: Promise<RsLintError[]> | null = null;
+    let lastIssues: RsLintError[] = [];
+    let pmPromise: ReturnType<typeof detect> | undefined;
     const getPm = () => {
-      if (!pmPromise) {
-        pmPromise = detect();
-      }
+      if (!pmPromise) pmPromise = detect();
       return pmPromise;
     };
 
-    const sendErrorToLogger = (issues: Issue[], text: string[]) => {
-      logger.error(formatLoggerErrors(issues, text, api.context.rootPath));
-    };
-
-    const sendErrorToOverlay = (errors: RsLintError[]) => {
-      try {
-        if (!send || typeof send !== 'function') {
-          logger.warn('sockWrite not available, cannot send errors to overlay');
-          return;
-        }
-
-        const toSends = errors
-          .map((e) => formateCodeFrame(prefix, e))
-          .map((item) => ({
-            ...item,
-            file: item.file,
-            loc: item.loc ? formateIssueLoc(item) : undefined,
-          }));
-
-        const lastResult = (lastCompilation?.errors ?? []).filter((item) =>
-          toSends.some(
-            (t) =>
-              t.file === item.file &&
-              t.loc === item.loc &&
-              t.name === item.name,
-          ),
-        );
-
-        const issues = [
-          ...lastResult.map((item) => ({
-            ...item,
-            loc: item.loc
-              ? !('name' in item.loc)
-                ? formateIssueLoc(item as RsLintError)
-                : item.loc
-              : undefined,
-          })),
-          ...toSends,
-        ] as Issue[];
-
-        const rootPath = api.context.rootPath;
-        const innerContext = {
-          rootPath,
-          logger: logger!,
-          overlay,
-        };
-        const data = getServerMessageErrors(issues, innerContext).data;
-
-        send('errors' as const, data);
-
-        logger.info(`Sent ${errors.length} lint errors to overlay`);
-        return {
-          issues,
-          text: data.text,
-        };
-      } catch (e) {
-        logger.error(`Failed to send error to overlay: ${e}`);
-      }
-    };
-
-    let runId = 0;
-    const runLint = async () => {
-      try {
-        const currentRun = ++runId;
-
-        const result = await runLintOnce(options, logger, getPm());
-
-        if (currentRun !== runId) {
-          return;
-        }
-
-        if (result.status === 'lint-errors') {
-          lintResults.error = result.errors;
-          const data = sendErrorToOverlay(lintResults.error);
-          if (data) {
-            sendErrorToLogger(data.issues, data.text);
-          }
-        } else {
-          const data = sendErrorToOverlay([]);
-          if (data) {
-            sendErrorToLogger(data.issues, data.text);
-          }
-          lintResults.error = [];
-          lintResults.warning = [];
-        }
-      } catch (error) {
-        logger.error(`${executeName} Error executing ${executeName}: ${error}`);
-      }
-    };
-
-    const debouncedRun = () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      timeoutId = setTimeout(() => runLint(), DEBOUNCE_MS);
+    // —— 启动一次 lint,返回 promise(对应 tapStartToRunWorkers) ——
+    const startLint = () => {
+      const current = runLintOnce(options, logger, getPm())
+        .then((result) =>
+          result.status === 'lint-errors' ? result.errors : [],
+        )
+        .catch((e) => {
+          logger.error(`${executeName} Error executing ${executeName}: ${e}`);
+          return [];
+        });
+      lintPromise = current;
+      return current;
     };
 
     api.modifyRspackConfig((config) => {
       config.plugins = config.plugins ?? [];
-
       config.plugins.push({
         apply(compiler: Rspack.Compiler) {
-          compiler.hooks.thisCompilation.tap(
+          // 保存 dev server 的 done tap(对应 interceptDoneToGetDevServerTap)
+          let devServerDoneTap: any = null;
+          compiler.hooks.done.intercept({
+            register: (tap) => {
+              if (
+                ['webpack-dev-server', 'rsbuild-dev-server'].includes(
+                  tap.name,
+                ) &&
+                tap.type === 'sync'
+              ) {
+                devServerDoneTap = tap;
+              }
+              return tap;
+            },
+          });
+
+          // 编译开始时并行启动 lint(对应 tapStartToRunWorkers / watchRun 分支)
+          const trigger = () => {
+            if (restartCompile) startLint();
+          };
+          compiler.hooks.watchRun.tap(`${executeName}-plugin`, trigger);
+          compiler.hooks.run.tap(`${executeName}-plugin`, trigger);
+
+          // 编译完成后:await lint,注入 errors,重触发 dev server
+          // (对应 tapDoneToAsyncGetIssues)
+          compiler.hooks.done.tap(
             `${executeName}-plugin`,
-            (compilation) => {
+            async (stats: Rspack.Stats) => {
+              if (stats.compilation.compiler !== compiler) return;
+              const currentPromise = lintPromise;
+              if (!currentPromise) return; // 还没跑过(比如首次未触发)
+
+              let issues: RsLintError[] = [];
               try {
-                compilation.errors.push(
-                  ...lintResults.error.map((item) => {
-                    return formateCodeFrame(prefix, item);
-                  }),
-                );
-                compilation.warnings.push(
-                  ...lintResults.warning.map((w) => {
-                    return formateCodeFrame(prefix, w);
-                  }),
-                );
-                lastCompilation = compilation;
-              } catch (e) {
-                console.error(e);
+                issues = await currentPromise;
+              } catch {
+                return;
+              }
+              // 已有新一轮 lint 在跑,丢弃这次过期结果
+              if (currentPromise !== lintPromise) return;
+
+              lastIssues = issues;
+
+              if (issues.length && devServerDoneTap) {
+                issues.forEach((issue) => {
+                  const error = new LintRspackError(prefix, issue);
+                  if (issue.severity === 'warning') {
+                    stats.compilation.warnings.push(error);
+                  } else {
+                    stats.compilation.errors.push(error);
+                  }
+                });
+                // 手动重触发 dev server,让它拿"脏" stats 再发一次
+                devServerDoneTap.fn(stats);
               }
             },
           );
         },
       });
     });
-    api.modifyRsbuildConfig((config) => {
-      config.server = config.server ?? {};
-      config.plugins = config.plugins ?? [];
-      overlay = config.dev?.client?.overlay ?? true;
 
-      const setup = config.server.setup ?? [];
-
-      const _setup: typeof setup = (context) => {
-        if (context.action === 'dev') {
-          const devServer = context.server as RsbuildDevServer;
-          send = devServer.sockWrite;
-          devServer.httpServer?.on('upgrade', (req) => {
-            if (req.url?.includes(config.dev?.client?.path)) {
-              Promise.resolve().then(() => {
-                const data = sendErrorToOverlay(lintResults.error);
-                if (data) {
-                  sendErrorToLogger(data.issues, data.text);
-                }
-              });
-            }
-          });
-        }
-      };
-
-      if (Array.isArray(setup)) {
-        config.server.setup = [_setup, ...setup];
-      } else {
-        config.server.setup = (context) => {
-          _setup(context);
-          return setup(context);
-        };
-      }
-    });
-
-    api.onAfterDevCompile(() => {
-      if (restartCompile) {
-        debouncedRun();
-      }
-    });
-
+    // 初始 lint(对应 tapStartToRunWorkers 里 watchRun 首次触发)
     api.onAfterStartDevServer(() => {
       const { lintOnStart = true } = options;
-      if (lintOnStart) {
-        runLint().then();
-      }
+      if (lintOnStart) startLint();
     });
   },
   name: 'linter-plugin',
 });
+
 export default lintPlugin;

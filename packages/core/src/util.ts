@@ -7,11 +7,9 @@ import {
   LintOptions,
   RunChildParams,
   RsLintError,
-  Issue,
 } from './interface.ts';
 import { resolveCommand } from 'package-manager-detector';
 import path from 'node:path';
-import { formatFileName } from './fork/format.ts';
 import fs from 'node:fs';
 import { codeFrameColumns } from '@babel/code-frame';
 import os from 'node:os';
@@ -121,28 +119,7 @@ const runChild = ({
     });
   });
 
-export const formateIssueLoc = (issue: RsLintError) =>
-  `${issue.loc.start.line}:${issue.loc.start.column}`;
 
-export function formatLoggerErrors(
-  issues: Issue[],
-  text: string[],
-  rootPath: string,
-) {
-  let content = text.join('\n');
-  issues.forEach((issue) => {
-    const isAbsolute = path.isAbsolute(issue.file!);
-    const absolutePath =
-      rootPath && !isAbsolute ? path.join(rootPath, issue.file!) : issue.file;
-    if (issue.file) {
-      content = content.replaceAll(
-        formatFileName(issue.file!, issue, rootPath),
-        `File\n at ${absolutePath}:${issue.loc}\n`,
-      );
-    }
-  });
-  return content;
-}
 
 export const formateCodeFrame = (prefix: string, item: RsLintError) => {
   const source =
