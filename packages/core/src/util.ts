@@ -24,13 +24,13 @@ export const runLintOnce = async (
   options: LintOptions,
   logger: Logger,
   pmPromise: ReturnType<typeof detect>,
+  signal?: AbortSignal,
 ): Promise<RunChildResult> => {
   const {
     path = '',
     lintPath = '',
     executeName,
     args = [],
-    shouldFail = false,
     formatter,
   } = options;
   const cwd = resolveAbsolutePath(path);
@@ -62,9 +62,9 @@ export const runLintOnce = async (
       cmd: resolved.command,
       cwd,
       logger,
-      shouldFail,
       formatter,
       executeName,
+      signal,
     });
 
     if (result.status === 'fallback') {
@@ -80,9 +80,9 @@ const runChild = ({
   args,
   cwd,
   logger,
-  shouldFail,
   formatter,
   executeName,
+  signal,
 }: RunChildParams): Promise<RunChildResult> =>
   new Promise((resolve, reject) => {
     let output = '';
@@ -93,6 +93,16 @@ const runChild = ({
       stdio: 'pipe',
     });
 
+    // 收到 abort 信号时杀掉子进程
+    const onAbort = () => child.kill('SIGTERM');
+    if (signal) {
+      if (signal.aborted) {
+        child.kill('SIGTERM');
+      } else {
+        signal.addEventListener('abort', onAbort, { once: true });
+      }
+    }
+
     const emit = (data: Buffer) => {
       output += data.toString();
     };
@@ -100,16 +110,14 @@ const runChild = ({
     child.stdout?.on('data', (d) => emit(d));
     child.stderr?.on('data', (d) => emit(d));
     child.on('error', (error) => {
+      signal?.removeEventListener('abort', onAbort);
       resolve({ status: 'fallback' });
       logger.error(`${executeName} Error: ${error.message}`);
       reject(error);
     });
 
     child.on('exit', (code) => {
-      if (code !== 0 && shouldFail) {
-        reject(new Error(`${executeName} found lint errors.`));
-        return;
-      }
+      signal?.removeEventListener('abort', onAbort);
       const errors = formatter(output);
       if (errors.length) {
         resolve({ status: 'lint-errors', errors });

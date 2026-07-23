@@ -37,31 +37,56 @@ class LintRspackError extends Error {
 }
 
 export const lintPlugin = (options: LintOptions) => ({
+  name: 'linter-plugin',
   setup(api: RsbuildPluginAPI) {
     const executeName = options.executeName;
     const restartCompile = options.restartCompile ?? true;
+    const lintOnStart = options.lintOnStart ?? true;
     const logger: Logger = api.logger;
     const prefix = `${color.yellow('[')}${color.yellow(executeName)}${color.yellow(']')}`;
 
     // —— 状态(对标 ts-checker 的 plugin state) ——
     let lintPromise: Promise<RsLintError[]> | null = null;
-    let lastIssues: RsLintError[] = [];
+    let abortController: AbortController | null = null;
+    let lintInProgress = false;
     let pmPromise: ReturnType<typeof detect> | undefined;
     const getPm = () => {
       if (!pmPromise) pmPromise = detect();
       return pmPromise;
     };
 
-    // —— 启动一次 lint,返回 promise(对应 tapStartToRunWorkers) ——
+    // —— 启动一次 lint,串行排队 + abort 旧的(对应 tapStartToRunWorkers) ——
     const startLint = () => {
-      const current = runLintOnce(options, logger, getPm())
-        .then((result) =>
-          result.status === 'lint-errors' ? result.errors : [],
-        )
+      // 中断上一次 lint
+      if (abortController) {
+        abortController.abort();
+      }
+      abortController = new AbortController();
+      const signal = abortController.signal;
+      lintInProgress = true;
+
+      // 串行排队:等上一次完成后(或 abort 后)再跑
+      const current = (lintPromise || Promise.resolve())
+        .catch(() => [])
+        .then(async () => {
+          if (signal.aborted) return [];
+          const result = await runLintOnce(
+            options,
+            logger,
+            getPm(),
+            signal,
+          );
+          return result.status === 'lint-errors' ? result.errors : [];
+        })
         .catch((e) => {
           logger.error(`${executeName} Error executing ${executeName}: ${e}`);
           return [];
+        })
+        .then((issues) => {
+          if (current === lintPromise) lintInProgress = false;
+          return issues;
         });
+
       lintPromise = current;
       return current;
     };
@@ -71,13 +96,16 @@ export const lintPlugin = (options: LintOptions) => ({
       config.plugins.push({
         apply(compiler: Rspack.Compiler) {
           // 保存 dev server 的 done tap(对应 interceptDoneToGetDevServerTap)
+          // 生产模式没有 dev server 的 tap,devServerDoneTap 保持 null,无副作用
           let devServerDoneTap: any = null;
           compiler.hooks.done.intercept({
             register: (tap) => {
               if (
-                ['webpack-dev-server', 'rsbuild-dev-server'].includes(
-                  tap.name,
-                ) &&
+                [
+                  'webpack-dev-server',
+                  'rsbuild-dev-server',
+                  'rspack-dev-server',
+                ].includes(tap.name) &&
                 tap.type === 'sync'
               ) {
                 devServerDoneTap = tap;
@@ -87,20 +115,30 @@ export const lintPlugin = (options: LintOptions) => ({
           });
 
           // 编译开始时并行启动 lint(对应 tapStartToRunWorkers / watchRun 分支)
-          const trigger = () => {
+          // 首次编译受 lintOnStart 控制,后续每次保存照常触发
+          // 仅注册 watchRun(开发模式),不注册 run(生产模式)——生产模式不生效
+          let firstRun = true;
+          compiler.hooks.watchRun.tap(`${executeName}-plugin`, () => {
+            if (firstRun) {
+              firstRun = false;
+              if (!lintOnStart) return;
+            }
             if (restartCompile) startLint();
-          };
-          compiler.hooks.watchRun.tap(`${executeName}-plugin`, trigger);
-          compiler.hooks.run.tap(`${executeName}-plugin`, trigger);
+          });
 
-          // 编译完成后:await lint,注入 errors,重触发 dev server
+          // 开发模式:await lint,注入 errors,重触发 dev server
           // (对应 tapDoneToAsyncGetIssues)
           compiler.hooks.done.tap(
             `${executeName}-plugin`,
             async (stats: Rspack.Stats) => {
               if (stats.compilation.compiler !== compiler) return;
               const currentPromise = lintPromise;
-              if (!currentPromise) return; // 还没跑过(比如首次未触发)
+              if (!currentPromise) return;
+
+              // lint 还在跑时给出进度提示
+              if (lintInProgress) {
+                logger.info(`${prefix} ${color.cyan('in progress...')}`);
+              }
 
               let issues: RsLintError[] = [];
               try {
@@ -111,8 +149,15 @@ export const lintPlugin = (options: LintOptions) => ({
               // 已有新一轮 lint 在跑,丢弃这次过期结果
               if (currentPromise !== lintPromise) return;
 
-              lastIssues = issues;
+              // 终端打印错误
+              if (issues.length) {
+                const formatted = issues
+                  .map((i) => formateCodeFrame(prefix, i).message)
+                  .join('\n');
+                logger.error(formatted);
+              }
 
+              // 上报到 dev-server(overlay),如果有错误且 dev server 在监听
               if (issues.length && devServerDoneTap) {
                 issues.forEach((issue) => {
                   const error = new LintRspackError(prefix, issue);
@@ -130,14 +175,7 @@ export const lintPlugin = (options: LintOptions) => ({
         },
       });
     });
-
-    // 初始 lint(对应 tapStartToRunWorkers 里 watchRun 首次触发)
-    api.onAfterStartDevServer(() => {
-      const { lintOnStart = true } = options;
-      if (lintOnStart) startLint();
-    });
   },
-  name: 'linter-plugin',
 });
 
 export default lintPlugin;

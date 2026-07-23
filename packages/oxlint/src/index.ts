@@ -184,7 +184,6 @@ export const linterPlugin = (options: Options = {}) => ({
     const args = buildArgs(options, api.logger);
     lintPlugin({
       path: options.path,
-      shouldFail: options.failOnError || options.failOnWarning,
       args: [...args, '--format', 'json'],
       lintPath: options.oxlintPath,
       executeName: 'oxlint',

@@ -164,7 +164,6 @@ export const linterPlugin = (options: Options = {}) => ({
   setup(api: RsbuildPluginAPI) {
     lintPlugin({
       path: options.path,
-      shouldFail: options.failOnError || options.failOnWarning,
       args: [...buildArgs(options), '--reporter', 'rdjson'],
       lintPath: options.linterPath,
       executeName: 'biome',

@@ -122,7 +122,6 @@ export const linterPlugin = (options: Options = {}) => ({
   setup(api: RsbuildPluginAPI) {
     lintPlugin({
       path: options.path,
-      shouldFail: options.failOnError || options.failOnWarning,
       args: [...buildArgs(options), '--format', 'jsonline'],
       lintPath: options.rslintPath,
       executeName: 'rslint',
