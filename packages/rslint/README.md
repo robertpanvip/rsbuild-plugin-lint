@@ -1,8 +1,11 @@
 # rsbuild-plugin-rslint
 
-将 [Rslint](https://rsbuild.dev/guide/basic/linter.html) 集成到 [Rsbuild](https://rsbuild.dev/) 构建流程的插件。
+Integrates [Rslint](https://rsbuild.dev/guide/basic/linter.html) into the Rsbuild build
+workflow.
 
-Rslint 是 Rsbuild 官方的 Linter,基于 Rust 编写,同时支持 JavaScript / TypeScript 的 Lint 与类型检查(Type Check)。本插件将它无缝接入 Rsbuild dev server,让开发者在保存代码时即可看到结果。
+Rslint is Rsbuild's official linter written in Rust. It supports both JavaScript and TypeScript
+linting and can optionally perform TypeScript type checks. This package connects Rslint to the
+Rsbuild dev server so developers see diagnostics as they save files.
 
 <p>
   <a href="https://npmjs.com/package/rsbuild-plugin-rslint">
@@ -11,24 +14,24 @@ Rslint 是 Rsbuild 官方的 Linter,基于 Rust 编写,同时支持 JavaScript /
   <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square&colorA=564341&colorB=EDED91" alt="license" />
 </p>
 
-## ✨ 特性
+## ✨ Features
 
-- 🚀 **原生高速**: 基于 Rust 编写的 Linter
-- 🧠 **类型检查支持**: 可开启 `--type-check` 进行 TS 类型检查(默认开启)
-- 💡 **实时反馈**: 保存文件即触发 Lint,结果同步到终端与浏览器 Overlay
-- 🎛️ **高度可配**: 支持通过 `rslint.config.*` 自定义规则
+- 🚀 Native Rust performance
+- 🧠 Type checking support: enable `--type-check` for TS type checks (on by default)
+- 💡 Live feedback: lint runs on save and reports diagnostics to terminal and overlay
+- 🎛️ Highly configurable: customize rules via `rslint.config.*`
 
-## 📦 安装
+## 📦 Install
 
 ```bash
 npm add rsbuild-plugin-rslint -D
-# 或
+# or
 pnpm add rsbuild-plugin-rslint -D
-# 或
+# or
 yarn add rsbuild-plugin-rslint -D
 ```
 
-## 🚀 使用
+## 🚀 Usage
 
 ```ts
 // rsbuild.config.ts
@@ -40,33 +43,33 @@ export default defineConfig({
 });
 ```
 
-启动开发服务器:
+Start the dev server:
 
 ```bash
 npm run dev
 ```
 
-## ⚙️ 配置
+## ⚙️ Configuration
 
-`linterPlugin` 支持以下选项:
+`linterPlugin` supports the following options:
 
-| 选项            | 类型      | 默认值   | 描述                                                          |
-| --------------- | --------- | -------- | ------------------------------------------------------------- |
-| `path`          | `string`  | -        | 指定需要 Lint 的路径                                          |
-| `configFile`    | `string`  | -        | 配置文件路径,传递给 `-config`                                 |
-| `rslintPath`    | `string`  | -        | 自定义 rslint 可执行文件路径                                  |
-| `quiet`         | `boolean` | `false`  | 静默模式                                                      |
-| `fix`           | `boolean` | `false`  | 自动修复可修复的问题                                          |
-| `failOnError`   | `boolean` | `false`  | 有错误时让构建失败                                            |
-| `failOnWarning` | `boolean` | `false`  | 有警告时让构建失败                                            |
-| `lintOnStart`   | `boolean` | `true`   | dev server 启动时是否立即执行 Lint                            |
-| `typeCheck`     | `boolean` | `true`   | 是否启用 TypeScript 类型检查                                  |
-| `maxWarnings`   | `boolean` | -        | 是否启用最大警告数限制                                        |
-| `rule`          | `string`  | -        | 通过 `--rule` 指定单条规则配置                                |
-| `noColor`       | `boolean` | -        | 禁用 ANSI 颜色输出                                            |
-| `forceColor`    | `boolean` | -        | 强制启用 ANSI 颜色输出                                        |
+| Option           | Type      | Default | Description                                                      |
+| ---------------- | --------- | ------- | ---------------------------------------------------------------- |
+| `path`           | `string`  | -       | Path to lint                                                      |
+| `configFile`     | `string`  | -       | Path passed to `-config`                                          |
+| `rslintPath`     | `string`  | -       | Custom rslint binary path                                          |
+| `quiet`          | `boolean` | `false` | Quiet mode                                                         |
+| `fix`            | `boolean` | `false` | Auto-fix fixable issues                                             |
+| `failOnError`    | `boolean` | `false` | Fail the build on errors                                            |
+| `failOnWarning`  | `boolean` | `false` | Fail the build on warnings                                          |
+| `lintOnStart`    | `boolean` | `true`  | Run lint when dev server starts                                    |
+| `typeCheck`      | `boolean` | `true`  | Enable TypeScript type checking                                     |
+| `maxWarnings`    | `boolean` | -       | Enable maximum warnings limit                                       |
+| `rule`           | `string`  | -       | Provide single-rule configuration via `--rule`                      |
+| `noColor`        | `boolean` | -       | Disable ANSI colors                                                 |
+| `forceColor`     | `boolean` | -       | Force ANSI colors                                                    |
 
-### 示例
+### Example
 
 ```ts
 import { defineConfig } from '@rsbuild/core';
@@ -84,15 +87,15 @@ export default defineConfig({
 });
 ```
 
-## 🏗️ 开发
+## 🏗️ Development
 
 ```bash
-npm run build   # 构建
-npm run dev     # 监听模式
-npm run test    # 测试
+npm run build   # build
+npm run dev     # watch
+npm run test    # tests
 ```
 
-本地调试可进入 `playground/` 目录。
+For local debugging, use the `playground/` directory.
 
 ## 🪪 License
 

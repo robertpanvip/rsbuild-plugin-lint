@@ -6,7 +6,9 @@ Tsgo (TypeScript type checker, written in Go) lint plugin for [Rsbuild](https://
 
 ## What is tsgo?
 
-tsgo is a Go-based implementation of the TypeScript compiler (`tsc`). It exposes a CLI compatible with common `tsc` flags like `--noEmit`, `--project`, `--strict`, etc. This plugin wraps tsgo into the Rsbuild dev workflow, providing type-check errors as a lint overlay in the browser.
+`tsgo` is a Go-based implementation of the TypeScript compiler (`tsc`). It provides a CLI compatible
+with common `tsc` flags like `--noEmit`, `--project`, and `--strict`. This plugin wraps `tsgo` into the
+Rsbuild dev workflow and surfaces type-check errors as a lint overlay in the browser.
 
 ## Install
 

@@ -1,6 +1,7 @@
 # rsbuild-plugin-lint
 
-为 [Rsbuild](https://rsbuild.dev/) 打造的一系列高性能 Lint 插件。基于 Rust 生态的 Lint 工具,为 Rsbuild 项目提供开箱即用的代码质量检查能力。
+A collection of high-performance lint plugins for Rsbuild. These plugins integrate Rust-based
+linting tools into the Rsbuild workflow, providing ready-to-use code quality checks for projects.
 
 <p>
   <a href="https://github.com/robertpanvip/rsbuild-plugin-lint/actions">
@@ -8,28 +9,28 @@
   </a>
 </p>
 
-## ✨ 特性
+## ✨ Features
 
-- 🚀 **高性能**: 底层基于 Rust 编写的 Lint 工具,相比传统的 JS Lint 工具速度提升数十倍
-- 🔌 **即插即用**: 只需在 `rsbuild.config.ts` 中引入插件,即可获得开发时 Lint 能力
-- 💡 **实时反馈**: 开发过程中在终端和浏览器 Overlay 同时展示 Lint 结果,错误定位精准
-- 🧩 **模块化设计**: 核心逻辑与各 Lint 工具解耦,易于扩展与维护
-- 🔧 **高度可配**: 支持自定义配置文件路径、启动时 Lint、规则覆盖等多项选项
+- 🚀 High performance: Built on Rust-based linters that are orders of magnitude faster than typical JS linters.
+- 🔌 Plug-and-play: Simply add the plugin to your `rsbuild.config.ts` to enable linting during development.
+- 💡 Live feedback: Lint results are reported to the terminal and browser overlay with precise locations.
+- 🧩 Modular design: Core logic is decoupled from specific linters for easy extension and maintenance.
+- 🔧 Highly configurable: Options include custom config paths, lint-on-start, rule overrides, and more.
 
 ## 📦 Packages
 
-本项目采用 monorepo 结构,包含以下几个包:
+This monorepo contains the following packages:
 
-| 包名                         | 描述                                              | 文档                                  |
-| ---------------------------- | ------------------------------------------------- | ------------------------------------- |
-| `rsbuild-plugin-biome`       | 基于 [Biome](https://biomejs.dev/) 的 Lint 插件   | [README](packages/biome/README.md)    |
-| `rsbuild-plugin-oxlint`      | 基于 [Oxlint](https://oxc-project.github.io/) 的 Lint 插件 | [README](packages/oxlint/README.md) |
-| `rsbuild-plugin-rslint`      | 基于 [Rslint](https://rsbuild.dev/guide/basic/linter.html) 的 Lint 插件 | [README](packages/rslint/README.md) |
-| `rsbuild-plugin-lint` (core) | 通用核心插件,可基于它封装任何命令行 Lint 工具     | [README](packages/core/README.md)     |
+| Package                       | Description                                                 | Docs                                  |
+| ---------------------------- | ----------------------------------------------------------- | ------------------------------------- |
+| `rsbuild-plugin-biome`       | Biome-based lint plugin                                      | [README](packages/biome/README.md)    |
+| `rsbuild-plugin-oxlint`      | Oxlint-based lint plugin                                     | [README](packages/oxlint/README.md)   |
+| `rsbuild-plugin-rslint`      | Rslint-based lint plugin                                     | [README](packages/rslint/README.md)   |
+| `rsbuild-plugin-lint` (core) | Generic core plugin used to wrap any command-line linter     | [README](packages/core/README.md)     |
 
-## 📖 使用
+## 📖 Usage
 
-以 `rsbuild-plugin-oxlint` 为例:
+Example using `rsbuild-plugin-oxlint`:
 
 ```bash
 npm add rsbuild-plugin-oxlint -D
@@ -45,25 +46,26 @@ export default defineConfig({
 });
 ```
 
-启动开发服务器后,保存文件即可触发 Lint 检查,结果会同时在终端与浏览器 Overlay 中显示。
+After starting the dev server, saving files triggers lint checks and results will appear
+both in the terminal and in the browser overlay.
 
-## 🏗️ 开发
+## 🏗️ Development
 
 ```bash
-# 安装依赖
+# Install dependencies
 npm install
 
-# 构建所有包
+# Build packages
 npm run build -w packages/core
 npm run build -w packages/biome
 npm run build -w packages/oxlint
 npm run build -w packages/rslint
 
-# 运行测试
+# Run tests
 npm run test -w packages/oxlint
 ```
 
-每个子包下都有 `playground` 目录,便于本地调试。
+Each package includes a `playground/` directory for local experimentation and debugging.
 
 ## 🪪 License
 

@@ -1,6 +1,7 @@
 # rsbuild-plugin-biome
 
-将 [Biome](https://biomejs.dev/) 集成到 [Rsbuild](https://rsbuild.dev/) 构建流程中,为项目提供高性能的 JS/TS/CSS/JSON 统一 Lint 能力。
+Integrates [Biome](https://biomejs.dev/) into the [Rsbuild](https://rsbuild.dev/) build
+workflow, providing high-performance linting for JS/TS/CSS/JSON files.
 
 <p>
   <a href="https://npmjs.com/package/rsbuild-plugin-biome">
@@ -9,29 +10,29 @@
   <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square&colorA=564341&colorB=EDED91" alt="license" />
 </p>
 
-## ✨ 特性
+## ✨ Features
 
-- 基于 Biome,提供超高性能的 Lint 检查
-- 开发时保存文件自动触发 Lint,并在终端 / 浏览器 Overlay 中展示
-- 支持通过 `biome.json` / `biome.jsonc` 自定义配置
-- 支持连接本地 Biome daemon 服务,进一步提升速度
-- 与 Rsbuild dev server 深度集成,错误定位到具体行列
+- Powered by Biome for extremely fast linting
+- Auto-runs on file save and reports diagnostics to terminal and browser overlay
+- Supports configuration via `biome.json` / `biome.jsonc`
+- Optional connection to a local Biome daemon for even faster checks
+- Deep integration with Rsbuild dev server with precise file/line diagnostics
 
-## 📦 安装
+## 📦 Install
 
 ```bash
 npm add rsbuild-plugin-biome -D
-# 或
+# or
 pnpm add rsbuild-plugin-biome -D
-# 或
+# or
 yarn add rsbuild-plugin-biome -D
 ```
 
-`@biomejs/biome` 已作为依赖自动安装,无需手动安装。
+Note: `@biomejs/biome` is automatically installed as a dependency; no manual install required.
 
-## 🚀 使用
+## 🚀 Usage
 
-在你的 `rsbuild.config.ts` 中引入:
+Import the plugin in your `rsbuild.config.ts`:
 
 ```ts
 import { defineConfig } from '@rsbuild/core';
@@ -42,36 +43,37 @@ export default defineConfig({
 });
 ```
 
-启动开发服务器:
+Start the dev server:
 
 ```bash
 npm run dev
 ```
 
-当你修改并保存源文件时,插件会自动运行 `biome lint`,并将诊断结果同步到终端与浏览器 Overlay。
+When you edit and save files, the plugin runs `biome lint` and syncs diagnostics to the terminal
+and the browser overlay.
 
-## ⚙️ 配置
+## ⚙️ Configuration
 
-`linterPlugin` 支持的选项:
+Options supported by `linterPlugin`:
 
-| 选项                   | 类型                 | 默认值   | 描述                                                                              |
-| ---------------------- | -------------------- | -------- | --------------------------------------------------------------------------------- |
-| `path`                 | `string`             | -        | 要 Lint 的目标路径,默认为当前工作目录                                             |
-| `configFile`           | `string`             | -        | Biome 配置文件路径或查找目录。启用后将禁用默认配置解析                             |
-| `failOnError`          | `boolean`            | `false`  | 出现错误时是否让构建失败                                                          |
-| `failOnWarning`        | `boolean`            | `false`  | 出现警告时是否让构建失败                                                          |
-| `lintOnStart`          | `boolean`            | `true`   | 启动 dev server 时是否立即执行一次 Lint                                            |
-| `linterPath`           | `string`             | -        | 自定义 biome 可执行文件路径。用于指向非标准位置的 biome 二进制                     |
-| `colors`               | `'off' \| 'force'`   | -        | 输出格式化模式:`off` 输出纯文本,`force` 强制使用 ANSI                             |
-| `useServer`            | `string`             | -        | 连接到已在运行的 Biome daemon                                                     |
-| `verbose`              | `string`             | -        | 打印更多诊断信息及被处理 / 修改的文件                                             |
-| `maxDiagnostics`       | `number \| 'none'`   | `20`     | 限制显示的诊断数量,传 `'none'` 表示不限制                                          |
-| `skipParseErrors`      | `boolean`            | `false`  | 跳过含有语法错误的文件,而非输出错误诊断                                           |
-| `noErrorsOnUnmatched`  | `boolean`            | `false`  | 当没有处理任何文件时,抑制错误输出                                                 |
-| `errorOnWarnings`      | `boolean`            | `false`  | 有警告时以错误码退出                                                              |
-| `diagnosticLevel`      | `'info' \| 'warn' \| 'error'` | `'info'` | 显示的诊断级别,从低到高:`info` / `warn` / `error`                               |
+| Option                | Type                  | Default | Description                                                                            |
+| --------------------- | --------------------- | ------- | -------------------------------------------------------------------------------------- |
+| `path`                | `string`              | -       | Target path to lint, defaults to the current working directory                         |
+| `configFile`          | `string`              | -       | Path or lookup directory for Biome config; when provided, default resolution is disabled |
+| `failOnError`         | `boolean`             | `false` | Fail the build on errors                                                                |
+| `failOnWarning`       | `boolean`             | `false` | Fail the build on warnings                                                              |
+| `lintOnStart`         | `boolean`             | `true`  | Run lint once when the dev server starts                                               |
+| `linterPath`          | `string`              | -       | Custom path to the Biome executable                                                    |
+| `colors`              | `'off' \| 'force'`    | -       | Output formatting: `off` for plain text, `force` to force ANSI                         |
+| `useServer`           | `string`              | -       | Connect to a running Biome daemon                                                      |
+| `verbose`             | `string`              | -       | Print extra diagnostics and list processed/modified files                              |
+| `maxDiagnostics`      | `number \| 'none'`    | `20`    | Limit the number of diagnostics shown; pass `'none'` for no limit                      |
+| `skipParseErrors`     | `boolean`             | `false` | Skip files that contain syntax errors instead of reporting them                        |
+| `noErrorsOnUnmatched` | `boolean`             | `false` | Suppress errors when no files were processed                                           |
+| `errorOnWarnings`     | `boolean`             | `false` | Exit with an error code when warnings are present                                      |
+| `diagnosticLevel`     | `'info' \| 'warn' \| 'error'` | `'info'` | Diagnostic level to display                                                            |
 
-示例:
+Example:
 
 ```ts
 import { defineConfig } from '@rsbuild/core';
@@ -89,20 +91,20 @@ export default defineConfig({
 });
 ```
 
-## 🏗️ 开发
+## 🏗️ Development
 
 ```bash
-# 构建
+# Build
 npm run build
 
-# 监听模式
+# Watch / dev
 npm run dev
 
-# 测试
+# Test
 npm run test
 ```
 
-本地调试可进入 `playground/` 目录:
+For local debugging, go to the `playground/` directory:
 
 ```bash
 cd playground

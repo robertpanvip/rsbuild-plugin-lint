@@ -1,8 +1,10 @@
 # rsbuild-plugin-oxlint
 
-将 [Oxlint](https://oxc-project.github.io/) 集成到 [Rsbuild](https://rsbuild.dev/) 构建流程的插件。
+Integrates [Oxlint](https://oxc-project.github.io/) into the Rsbuild build workflow.
 
-Oxlint 是基于 Rust 编写的高性能 JavaScript / TypeScript Linter,与 ESLint 兼容,但速度可快 50~100 倍。本插件把它无缝接入 Rsbuild 的开发体验中。
+Oxlint is a high-performance JavaScript/TypeScript linter written in Rust and compatible with
+ESLint rulesets; it can be 50–100x faster than traditional JS linters. This package brings
+Oxlint into the Rsbuild developer experience.
 
 <p>
   <a href="https://npmjs.com/package/rsbuild-plugin-oxlint">
@@ -11,25 +13,25 @@ Oxlint 是基于 Rust 编写的高性能 JavaScript / TypeScript Linter,与 ESLi
   <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square&colorA=564341&colorB=EDED91" alt="license" />
 </p>
 
-## ✨ 特性
+## ✨ Features
 
-- 🚀 **极速**: 基于 Rust 的 Oxlint,毫秒级完成大规模代码的 Lint
-- 🔌 **零配置可用**: 默认自动读取 `.oxlintrc.json` 配置
-- 💡 **实时反馈**: 保存文件即触发 Lint,结果同步到终端与浏览器 Overlay
-- 📋 **丰富规则**: 支持 deny / allow / warn 三级规则覆盖
-- 🧩 **高度可配**: 支持自定义配置文件路径、ignore pattern、修复模式等
+- 🚀 Blazing fast: Oxlint (Rust) performs linting at millisecond scale for large codebases
+- 🔌 Works out-of-the-box: automatically reads `.oxlintrc.json` by default
+- 💡 Live feedback: lint runs on save and reports diagnostics to terminal and browser overlay
+- 📋 Rich rule set: supports deny / allow / warn rule levels
+- 🧩 Highly configurable: custom config paths, ignore patterns, fix mode, etc.
 
-## 📦 安装
+## 📦 Install
 
 ```bash
 npm add rsbuild-plugin-oxlint -D
-# 或
+# or
 pnpm add rsbuild-plugin-oxlint -D
-# 或
+# or
 yarn add rsbuild-plugin-oxlint -D
 ```
 
-## 🚀 使用
+## 🚀 Usage
 
 ```ts
 // rsbuild.config.ts
@@ -41,36 +43,36 @@ export default defineConfig({
 });
 ```
 
-启动开发服务器:
+Start the dev server:
 
 ```bash
 npm run dev
 ```
 
-保存源文件即可看到 Lint 结果。
+Saving source files will show lint results.
 
-## ⚙️ 配置
+## ⚙️ Configuration
 
-`linterPlugin` 支持以下选项:
+`linterPlugin` supports the following options:
 
-| 选项              | 类型                                                                                     | 默认值             | 描述                                                         |
-| ----------------- | ---------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------ |
-| `path`            | `string`                                                                                 | -                  | 指定需要 Lint 的路径                                         |
-| `ignorePattern`   | `string \| string[]`                                                                     | -                  | 忽略的 glob 模式,对应 `--ignore-pattern`                    |
-| `configFile`      | `string`                                                                                 | `'oxlintrc.json'`  | 配置文件路径                                                 |
-| `deny`            | `string[]`                                                                               | `[]`               | 标记为错误(deny)的规则,对应 `-D`                            |
-| `allow`           | `string[]`                                                                               | `[]`               | 允许(关闭)的规则,对应 `-A`                                  |
-| `warn`            | `string[]`                                                                               | `[]`               | 标记为警告的规则,对应 `-W`                                  |
-| `params`          | `string`                                                                                 | `''`               | 直接透传的额外命令行参数                                     |
-| `oxlintPath`      | `string`                                                                                 | -                  | 自定义 oxlint 可执行文件路径                                 |
-| `format`          | `'default' \| 'checkstyle' \| 'github' \| 'gitlab' \| 'json' \| 'junit' \| 'stylish' \| 'unix'` | -                  | 输出格式                                                     |
-| `quiet`           | `boolean`                                                                                | `false`            | 静默模式                                                     |
-| `fix`             | `boolean`                                                                                | `false`            | 自动修复可修复的问题                                         |
-| `failOnError`     | `boolean`                                                                                | `false`            | 有错误时让构建失败                                           |
-| `failOnWarning`   | `boolean`                                                                                | `false`            | 有警告时让构建失败                                           |
-| `lintOnStart`     | `boolean`                                                                                | `true`             | dev server 启动时是否立即执行 Lint                           |
+| Option            | Type                                                                                     | Default            | Description                                                         |
+| ----------------- | ---------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------- |
+| `path`            | `string`                                                                                 | -                  | Path to lint                                                         |
+| `ignorePattern`   | `string \| string[]`                                                                     | -                  | Glob patterns to ignore (maps to `--ignore-pattern`)                 |
+| `configFile`      | `string`                                                                                 | `'oxlintrc.json'`  | Path to the config file                                              |
+| `deny`            | `string[]`                                                                               | `[]`               | Rules treated as errors (`-D`)                                       |
+| `allow`           | `string[]`                                                                               | `[]`               | Rules to allow/disable (`-A`)                                        |
+| `warn`            | `string[]`                                                                               | `[]`               | Rules treated as warnings (`-W`)                                     |
+| `params`          | `string`                                                                                 | `''`               | Extra CLI parameters to forward                                       |
+| `oxlintPath`      | `string`                                                                                 | -                  | Custom Oxlint binary path                                             |
+| `format`          | `'default' \| 'checkstyle' \| 'github' \| 'gitlab' \| 'json' \| 'junit' \| 'stylish' \| 'unix'` | - | Output format                                                           |
+| `quiet`           | `boolean`                                                                                | `false`            | Quiet mode                                                           |
+| `fix`             | `boolean`                                                                                | `false`            | Auto-fix fixable issues                                               |
+| `failOnError`     | `boolean`                                                                                | `false`            | Fail build on errors                                                  |
+| `failOnWarning`   | `boolean`                                                                                | `false`            | Fail build on warnings                                                |
+| `lintOnStart`     | `boolean`                                                                                | `true`             | Run lint when dev server starts                                       |
 
-### 示例
+### Example
 
 ```ts
 import { defineConfig } from '@rsbuild/core';
@@ -89,9 +91,9 @@ export default defineConfig({
 });
 ```
 
-## 📘 配置文件
+## 📘 Config file
 
-可在项目根目录放置 `.oxlintrc.json`,示例:
+You can place a `.oxlintrc.json` in your project root, e.g.:
 
 ```json
 {
@@ -101,15 +103,15 @@ export default defineConfig({
 }
 ```
 
-## 🏗️ 开发
+## 🏗️ Development
 
 ```bash
-npm run build   # 构建
-npm run dev     # 监听模式
-npm run test    # 测试
+npm run build   # build
+npm run dev     # watch
+npm run test    # tests
 ```
 
-本地调试可进入 `playground/` 目录。
+For local debugging use the `playground/` directory.
 
 ## 🪪 License
 
