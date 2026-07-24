@@ -2,7 +2,7 @@
 
 `rsbuild-plugin-lint` 是一个通用的 Rsbuild Lint 核心插件。它不绑定具体的 Lint 工具,而是对外暴露一个可定制的 `lintPlugin` 工厂函数,用于将任意命令行 Lint 工具(如 oxlint / rslint / biome 等)接入 Rsbuild 的开发流程。
 
-这是 monorepo 的**核心包**,面向的是**二次封装的开发者**。普通用户请直接使用上层封装(如 `rsbuild-plugin-oxlint` / `rsbuild-plugin-biome` / `rsbuild-plugin-rslint`)。
+> 这是 monorepo 的**核心包**,面向的是**二次封装的开发者**。普通用户请直接使用上层封装(如 `rsbuild-plugin-oxlint` / `rsbuild-plugin-biome` / `rsbuild-plugin-rslint`)。
 
 <p>
   <a href="https://npmjs.com/package/rsbuild-plugin-lint">

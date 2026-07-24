@@ -27,7 +27,7 @@ pnpm add rsbuild-plugin-biome -D
 yarn add rsbuild-plugin-biome -D
 ```
 
-`@biomejs/biome` 已作为依赖自动安装,无需手动安装。
+> `@biomejs/biome` 已作为依赖自动安装,无需手动安装。
 
 ## 🚀 使用
 
