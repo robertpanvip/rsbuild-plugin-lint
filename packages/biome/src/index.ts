@@ -77,6 +77,9 @@ export type Issue = {
   suggestions: Suggestion[];
 };
 const parse = (output: string): Issue[] => {
+  if(!output){
+    return [];
+  }
   try {
      let out:any;
      if(output.includes(`\nlint ━━━━━━━━`)){
