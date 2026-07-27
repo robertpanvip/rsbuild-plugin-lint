@@ -1,6 +1,6 @@
 {
   "name": "rsbuild-plugin-biome",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "author": "pan",
   "license": "MIT",
   "description": "Biome lint plugin for Rsbuild",
