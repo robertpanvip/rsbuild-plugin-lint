@@ -12,15 +12,6 @@ export interface Options {
   warn?: string[];
   params?: string;
   oxlintPath?: string;
-  format?:
-    | 'default'
-    | 'checkstyle'
-    | 'github'
-    | 'gitlab'
-    | 'json'
-    | 'junit'
-    | 'stylish'
-    | 'unix';
   quiet?: boolean;
   fix?: boolean;
   failOnError?: boolean;
@@ -120,7 +111,6 @@ const buildArgs = (
     allow = [],
     warn = [],
     params = '',
-    format = '',
     quiet = false,
     fix = false,
     failOnWarning = false,
@@ -148,9 +138,6 @@ const buildArgs = (
   }
   if (fix) {
     args.push('--fix');
-  }
-  if (format) {
-    args.push('--format', format);
   }
   if (failOnWarning) {
     args.push('--deny-warnings');
