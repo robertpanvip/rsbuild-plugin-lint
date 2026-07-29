@@ -144,7 +144,11 @@ export const linterPlugin = (options: LintOptions) => ({
 
               let issues: RsLintError[] = [];
               try {
+                let start = Date.now();
                 issues = await currentPromise;
+                logger.info(
+                  `${prefix} ${color.cyan(`done in ${(Date.now() - start) / 1000}s`)}`,
+                );
               } catch {
                 return;
               }

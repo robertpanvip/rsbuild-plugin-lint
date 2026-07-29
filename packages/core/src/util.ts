@@ -144,7 +144,7 @@ export const formateCodeFrame = (prefix: string, item: RsLintError) => {
   }
   return {
     ...item,
-    message: ` ${prefix} ${item.code ? `[${color.green(item.code)}]` : ``} ${color.cyan(item.message)} ${color.cyan(item.help)}\n${frame}\n`,
+    message: `${prefix} ${item.code ? `[${color.green(item.code)}]` : ``} ${color.cyan(item.message)} ${color.cyan(item.help)}\n${frame}\n`,
   };
 };
 // 保存 dev server 的 done tap(对应 interceptDoneToGetDevServerTap)
