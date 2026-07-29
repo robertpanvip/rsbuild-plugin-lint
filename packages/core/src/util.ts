@@ -1,6 +1,7 @@
 import type { Logger } from '@rsbuild/core';
 import { detect } from 'package-manager-detector/detect';
 import nodePath from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { spawn } from 'cross-spawn';
 import {
   RunChildResult,
@@ -127,6 +128,36 @@ const runChild = ({
       }
     });
   });
+
+export const formatFileLoc = (item: RsLintError): string => {
+  if (!item.file) return '';
+  let file = item.file;
+  // 相对路径,和 Rsbuild 的 formatStatsError 保持一致
+  const cwd = process.cwd();
+  if (file.startsWith(cwd + nodePath.sep)) {
+    file = '.' + nodePath.sep + file.slice(cwd.length + 1);
+  }
+  if (item.loc?.start) {
+    const { line, column } = item.loc.start;
+    file += `:${line}${column ? `:${column}` : ''}`;
+  }
+  return file;
+};
+
+/**
+ * 生成可点击的终端文件链接。
+ * 使用 OSC 8 终端超链接协议,在 VS Code / JetBrains / Windows Terminal 等现代终端中可点击跳转。
+ */
+export const formatClickableFile = (item: RsLintError): string => {
+  if (!item.file) return '';
+  const display = formatFileLoc(item);
+  const fileUrl = pathToFileURL(item.file).href;
+  // OSC 8 超链接 + 显式下划线(WebStorm 终端不会自动渲染 OSC 8 下划线)
+  // 使用 24-bit RGB 着色,匹配 IDE 终端默认链接色
+  const START = '\x1b[4m\x1b[38;2;84;138;247m';
+  const END = '\x1b[39m\x1b[24m';
+  return `File: \x1b]8;;${fileUrl}\x1b\\${START}${display}${END}\x1b]8;;\x1b\\`;
+};
 
 export const formateCodeFrame = (prefix: string, item: RsLintError) => {
   const source =

@@ -2,7 +2,7 @@ import type { Logger, RsbuildPluginAPI, Rspack } from '@rsbuild/core';
 import { detect } from 'package-manager-detector/detect';
 import { color } from 'rslog';
 import { FullTap, LintOptions, RsLintError } from './interface.ts';
-import { runLintOnce, formateCodeFrame, isDevServerTap } from './util.ts';
+import { runLintOnce, formateCodeFrame, isDevServerTap, formatClickableFile } from './util.ts';
 
 /**
  * 把 lint 错误包装成 rspack Error,这样 Rsbuild 自带的 overlay 格式化器
@@ -155,10 +155,15 @@ export const linterPlugin = (options: LintOptions) => ({
               // 已有新一轮 lint 在跑,丢弃这次过期结果
               if (currentPromise !== lintPromise) return;
 
-              // 终端打印错误
+              // 终端打印错误(File 行用 OSC 8 超链接,可点击跳转)
               if (issues.length) {
                 const formatted = issues
-                  .map((i) => formateCodeFrame(prefix, i).message)
+                  .map((i) => {
+                    const fileLine = formatClickableFile(i);
+                    return fileLine
+                      ? `${fileLine}\n${formateCodeFrame(prefix, i).message}`
+                      : formateCodeFrame(prefix, i).message;
+                  })
                   .join('\n');
                 logger.error(formatted);
               }
