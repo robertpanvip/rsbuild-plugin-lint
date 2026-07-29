@@ -77,8 +77,16 @@ export type Issue = {
   suggestions: Suggestion[];
 };
 const parse = (output: string): Issue[] => {
+  if(!output){
+    return [];
+  }
   try {
-    const out = JSON.parse(output);
+     let out:any;
+     if(output.includes(`\nlint ━━━━━━━━`)){
+         out = JSON.parse(output.split(`\nlint ━━━━━━━━`)[0])
+     } else {
+         out = JSON.parse(output)
+     }
     if (out.diagnostics) {
       if (Array.isArray(out.diagnostics)) {
         return out.diagnostics;
