@@ -2,7 +2,12 @@ import type { Logger, RsbuildPluginAPI, Rspack } from '@rsbuild/core';
 import { detect } from 'package-manager-detector/detect';
 import { color } from 'rslog';
 import { FullTap, LintOptions, RsLintError } from './interface.ts';
-import { runLintOnce, formateCodeFrame, isDevServerTap, formatClickableFile } from './util.ts';
+import {
+  runLintOnce,
+  formateCodeFrame,
+  isDevServerTap,
+  formatClickableFile,
+} from './util.ts';
 
 /**
  * 把 lint 错误包装成 rspack Error,这样 Rsbuild 自带的 overlay 格式化器
@@ -20,7 +25,7 @@ class IssueError extends Error {
   constructor(prefix: string, issue: RsLintError) {
     const framed = formateCodeFrame(prefix, issue);
     super(framed.message);
-    this.name = issue.code || 'LintError';
+    this.name = issue.code || 'IssueError';
     this.issue = { ...issue, message: framed.message };
 
     this.file = issue.file;
