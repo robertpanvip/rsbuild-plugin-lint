@@ -58,8 +58,10 @@ type LintError = {
   related: unknown[];
 };
 
-
-const parseJsonOutput = (output: string): LintError[] => {
+const parseJsonOutput = (
+  output: string,
+  logger?: { error: (msg: string) => void },
+): LintError[] => {
   try {
     const json = JSON.parse(output);
     if (json && typeof json === 'object' && Array.isArray(json.diagnostics)) {
@@ -68,14 +70,19 @@ const parseJsonOutput = (output: string): LintError[] => {
     if (Array.isArray(json)) {
       return json;
     }
-  } catch {
-    // ignore parse errors
+  } catch (e) {
+    if (logger) {
+      logger.error(output);
+    }
   }
   return [];
 };
 
-const formatter = (output: string) => {
-  const issues= parseJsonOutput(output);
+const formatter = (
+  output: string,
+  logger?: { error: (msg: string) => void },
+) => {
+  const issues = parseJsonOutput(output, logger);
   return issues.map((item) => ({
     ...item,
     severity: item.severity,
@@ -92,7 +99,9 @@ const formatter = (output: string) => {
 const resolveAbsolutePath = (p: string): string =>
   nodePath.isAbsolute(p) ? p : nodePath.join(process.cwd(), p);
 
-const checkTsPluginInstalled = (logger: { warn: (msg: string) => void }): boolean => {
+const checkTsPluginInstalled = (logger: {
+  warn: (msg: string) => void;
+}): boolean => {
   try {
     return existsSync(`./node_modules/oxlint-tsgolint`);
   } catch {
@@ -100,7 +109,10 @@ const checkTsPluginInstalled = (logger: { warn: (msg: string) => void }): boolea
   }
 };
 
-const buildArgs = (options: Options, logger?: { warn: (msg: string) => void }): string[] => {
+const buildArgs = (
+  options: Options,
+  logger?: { warn: (msg: string) => void },
+): string[] => {
   const {
     ignorePattern,
     configFile = 'oxlintrc.json',
@@ -116,7 +128,7 @@ const buildArgs = (options: Options, logger?: { warn: (msg: string) => void }): 
     tsconfig = '',
     typeCheck = false,
   } = options;
-  
+
   if (
     (typeAware || tsconfig || typeCheck) &&
     logger &&
@@ -129,7 +141,7 @@ const buildArgs = (options: Options, logger?: { warn: (msg: string) => void }): 
     );
     return buildArgs({ ...options, typeAware: false, tsconfig: '' }, logger);
   }
-  
+
   const args: string[] = [];
   if (quiet) {
     args.push('--quiet');
@@ -187,7 +199,7 @@ export const linterPlugin = (options: Options = {}) => ({
       args: [...args, '--format', 'json'],
       lintPath: options.oxlintPath,
       executeName: 'oxlint',
-      formatter,
+      formatter: (val) => formatter(val, api.logger),
       lintOnStart: options.lintOnStart,
     }).setup(api);
   },
