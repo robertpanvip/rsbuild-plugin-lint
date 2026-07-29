@@ -48,15 +48,22 @@ export const linterPlugin = (options: LintOptions) => ({
   name: 'linter-plugin',
   setup(api: RsbuildPluginAPI) {
     const executeName = options.executeName;
+
     const restartCompile = options.restartCompile ?? true;
+
     const lintOnStart = options.lintOnStart ?? true;
+
     const logger: Logger = api.logger;
+
     const prefix = `${color.yellow('[')}${color.yellow(executeName)}${color.yellow(']')}`;
 
     // —— 状态(对标 ts-checker 的 plugin state) ——
     let lintPromise: Promise<RsLintError[]> | null = null;
+
     let abortController: AbortController | null = null;
+
     let lintInProgress = false;
+
     let pmPromise: ReturnType<typeof detect> | undefined;
     const getPm = () => {
       if (!pmPromise) pmPromise = detect();
