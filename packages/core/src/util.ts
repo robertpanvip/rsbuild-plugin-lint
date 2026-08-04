@@ -84,11 +84,13 @@ const limit = (issues:RsLintError[], maxIssues = 30) => {
         {
           message: `... and ${issues.length - maxIssues} more issues`,
           code: '',
-          location: {
-            path: '',
-            range: {},
+          name: '',
+          severity:'error',
+          file:'',
+          loc: {
+            start: {line:0},
           },
-          suggestions: [],
+          help: '',
         },
       ]
     : issues;
