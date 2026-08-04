@@ -4,14 +4,13 @@ import nodePath from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { spawn } from 'cross-spawn';
 import {
-  RunChildResult,
-  LintOptions,
-  RunChildParams,
-  RsLintError,
   FullTap,
+  LintOptions,
+  RsLintError,
+  RunChildParams,
+  RunChildResult,
 } from './interface.ts';
 import { resolveCommand } from 'package-manager-detector';
-import path from 'node:path';
 import fs from 'node:fs';
 import { codeFrameColumns } from '@babel/code-frame';
 import os from 'node:os';
@@ -77,25 +76,24 @@ export const runLintOnce = async (
   return tryRun(true);
 };
 
-const limit = (issues:RsLintError[], maxIssues = 30) => {
-  const limitedIssues = issues.length > maxIssues
+const limit = (issues: RsLintError[], maxIssues = 30) => {
+  return issues.length > maxIssues
     ? [
         ...issues.slice(0, maxIssues),
         {
           message: `... and ${issues.length - maxIssues} more issues`,
           code: '',
           name: '',
-          severity:'error',
-          file:'',
+          severity: 'error',
+          file: '',
           loc: {
-            start: {line:0},
+            start: { line: 0 },
           },
           help: '',
         },
       ]
     : issues;
-  return limitedIssues
-}
+};
 
 const runChild = ({
   cmd,
