@@ -77,6 +77,24 @@ export const runLintOnce = async (
   return tryRun(true);
 };
 
+const limit = (issues:RsLintError[], maxIssues = 30) => {
+  const limitedIssues = issues.length > maxIssues
+    ? [
+        ...issues.slice(0, maxIssues),
+        {
+          message: `... and ${issues.length - maxIssues} more issues`,
+          code: '',
+          location: {
+            path: '',
+            range: {},
+          },
+          suggestions: [],
+        },
+      ]
+    : issues;
+  return limitedIssues
+}
+
 const runChild = ({
   cmd,
   args,
@@ -120,7 +138,7 @@ const runChild = ({
 
     child.on('exit', (code) => {
       signal?.removeEventListener('abort', onAbort);
-      const errors = formatter(output);
+      const errors = limit(formatter(output));
       if (errors.length) {
         resolve({ status: 'lint-errors', errors });
       } else {
