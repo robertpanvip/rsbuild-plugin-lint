@@ -6,6 +6,13 @@ Integrates [Oxlint](https://oxc-project.github.io/) into the Rsbuild development
 
 Oxlint is a high-performance JavaScript/TypeScript linter written in Rust. This package brings Oxlint into the Rsbuild developer experience with terminal diagnostics and browser Overlay feedback.
 
+<p>
+  <a href="https://npmjs.com/package/rsbuild-plugin-oxlint">
+    <img src="https://img.shields.io/npm/v/rsbuild-plugin-oxlint?style=flat-square&colorA=564341&colorB=EDED91" alt="npm version" />
+  </a>
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square&colorA=564341&colorB=EDED91" alt="license" />
+</p>
+
 ## 🚀 Why rsbuild-plugin-oxlint?
 
 Rsbuild is designed for fast builds. Linting should not turn the build pipeline into a synchronous waiting step.
