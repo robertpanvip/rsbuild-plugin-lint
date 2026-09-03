@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import nodePath from 'node:path';
 import type { RsbuildPluginAPI } from '@rsbuild/core';
 import lintPlugin from 'rsbuild-plugin-lint';
+import { createRequire } from 'node:module';
 
 export interface Options {
   path?: string;
