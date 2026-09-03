@@ -138,7 +138,7 @@ const buildArgs = (
         'Please install it with: npm install oxlint-tsgolint --save-dev\n' +
         'The --type-aware and --tsconfig options will be ignored.',
     );
-    return buildArgs({ ...options, typeAware: false, tsconfig: '' }, context);
+    return buildArgs({ ...options, typeAware: false, typeCheck：false, tsconfig: '' }, context);
   }
 
   const args: string[] = [];
