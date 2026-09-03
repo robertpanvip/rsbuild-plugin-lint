@@ -63,7 +63,6 @@
   },
   "dependencies": {
     "cross-spawn": "^7.0.6",
-    "oxlint": "^1.68.0",
     "package-manager-detector": "^1.6.0",
     "rslog": "^2.1.2",
     "@babel/code-frame": "^7.29.7"
