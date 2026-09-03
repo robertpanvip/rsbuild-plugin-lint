@@ -96,7 +96,7 @@ const checkTsPluginInstalled = (
 ): boolean => {
   try {
     const require = createRequire(
-      path.join(cwd, 'package.json'),
+      nodePath.join(cwd, 'package.json'),
     );
 
     require.resolve('oxlint-tsgolint');
@@ -109,7 +109,7 @@ const checkTsPluginInstalled = (
 
 const buildArgs = (
   options: Options,
-  context?: {logger:{ warn: (msg: string) => void },cwd:string},
+  context: {logger:{ warn: (msg: string) => void },cwd:string},
 ): string[] => {
   const {
     ignorePattern,
