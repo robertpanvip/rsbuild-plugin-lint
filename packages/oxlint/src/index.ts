@@ -90,11 +90,17 @@ const formatter = (
 const resolveAbsolutePath = (p: string): string =>
   nodePath.isAbsolute(p) ? p : nodePath.join(process.cwd(), p);
 
-const checkTsPluginInstalled = (logger: {
-  warn: (msg: string) => void;
-}): boolean => {
+const checkTsPluginInstalled = (
+  cwd: string,
+): boolean => {
   try {
-    return existsSync(`./node_modules/oxlint-tsgolint`);
+    const require = createRequire(
+      path.join(cwd, 'package.json'),
+    );
+
+    require.resolve('oxlint-tsgolint');
+
+    return true;
   } catch {
     return false;
   }
@@ -102,7 +108,7 @@ const checkTsPluginInstalled = (logger: {
 
 const buildArgs = (
   options: Options,
-  logger?: { warn: (msg: string) => void },
+  context?: {logger:{ warn: (msg: string) => void },cwd:string},
 ): string[] => {
   const {
     ignorePattern,
@@ -118,18 +124,20 @@ const buildArgs = (
     tsconfig = '',
     typeCheck = false,
   } = options;
+  
+  const logger = context.logger;
 
   if (
     (typeAware || tsconfig || typeCheck) &&
     logger &&
-    !checkTsPluginInstalled(logger)
+    !checkTsPluginInstalled(context.cwd)
   ) {
     logger.warn(
       'oxlint-tsgolint is not installed. Type-aware linting requires oxlint-tsgolint.\n' +
         'Please install it with: npm install oxlint-tsgolint --save-dev\n' +
         'The --type-aware and --tsconfig options will be ignored.',
     );
-    return buildArgs({ ...options, typeAware: false, tsconfig: '' }, logger);
+    return buildArgs({ ...options, typeAware: false, tsconfig: '' }, context);
   }
 
   const args: string[] = [];
@@ -180,7 +188,7 @@ const buildArgs = (
 
 export const linterPlugin = (options: Options = {}) => ({
   setup(api: RsbuildPluginAPI) {
-    const args = buildArgs(options, api.logger);
+    const args = buildArgs(options, {logger:api.logger,cwd:api.context.rootPath});
     lintPlugin({
       path: options.path,
       args: [...args, '--format', 'json'],
