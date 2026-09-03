@@ -88,8 +88,8 @@ const formatter = (
   }));
 };
 
-const resolveAbsolutePath = (p: string): string =>
-  nodePath.isAbsolute(p) ? p : nodePath.join(process.cwd(), p);
+const resolveAbsolutePath = (p: string, cwd: string): string =>
+  nodePath.isAbsolute(p) ? p : nodePath.resolve(cwd, p);
 
 const checkTsPluginInstalled = (
   cwd: string,
@@ -158,7 +158,7 @@ const buildArgs = (
     args.push('--type-check');
   }
   if (tsconfig) {
-    args.push('--tsconfig', resolveAbsolutePath(tsconfig));
+    args.push('--tsconfig', resolveAbsolutePath(tsconfig,context.cwd));
   }
   const patterns = Array.isArray(ignorePattern)
     ? ignorePattern
@@ -177,7 +177,7 @@ const buildArgs = (
   warn.forEach((w) => {
     args.push('-W', w);
   });
-  const configFilePath = resolveAbsolutePath(configFile);
+  const configFilePath = resolveAbsolutePath(configFile,context.cwd);
   if (existsSync(configFilePath)) {
     args.push('-c', configFilePath);
   }
